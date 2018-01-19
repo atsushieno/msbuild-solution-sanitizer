@@ -172,13 +172,18 @@ output			Sanitized solution (.sln) or definition (.xml) to write
 				switch (pattern) {
 				case "all":
 					foreach (var config in solution_configuration_platforms)
-						foreach (var prop in default_properties)
+						foreach (var prop in default_properties) {
+							int sepidx = config.IndexOf ('|');
+							var cfg = sepidx < 0 ? null : config.Substring (0, sepidx);
+							cfg = cfg != null && cfg.EndsWith ("Release") ? "Release" : cfg.EndsWith ("Debug") ? "Debug" : cfg;
+							var arch = sepidx < 0 ? null : config.Substring (sepidx + 1);
 							project_configuration_platforms.Add (new ProjectConfigurationPlatform {
 								ProjectGuid = projectGuid,
 								SolutionConfigurationName = config,
 								Property = prop,
-								ConfigurationValue = config.Replace ("AnyCPU", "Any CPU")
-						});
+								ConfigurationValue = (cfg != null ? cfg + '|' + arch : config).Replace ("AnyCPU", "Any CPU"),
+							});
+						}
 					break;
 				case null:
 					foreach (var configPlatformElement in projectElement.Elements ("config-platform")) {
@@ -278,45 +283,53 @@ output			Sanitized solution (.sln) or definition (.xml) to write
 
 		public void Dump ()
 		{
-			Console.WriteLine ("Projects");
+			Dump (Console.Out);
+		}
+
+		public void Dump (TextWriter writer)
+		{
+			if (writer == null)
+				throw new ArgumentNullException (nameof (writer));
+
+			writer.WriteLine ("Projects");
 
 			foreach (var proj in projects)
-				Console.WriteLine ($"\t{ProjectTypeGuids.GetNameIfAvailable (proj.ProjectTypeGuids)} {proj.Path}");
+				writer.WriteLine ($"\t{ProjectTypeGuids.GetNameIfAvailable (proj.ProjectTypeGuids)} {proj.Path}");
 
-			Console.WriteLine ();
-			Console.WriteLine ("SolutionConfigurationPlatform");
+			writer.WriteLine ();
+			writer.WriteLine ("SolutionConfigurationPlatform");
 			foreach (var plat in solution_configuration_platforms)
-				Console.WriteLine ('\t' + plat);
+				writer.WriteLine ('\t' + plat);
 
-			Console.WriteLine ();
-			Console.WriteLine ("Solution Folders:");
+			writer.WriteLine ();
+			writer.WriteLine ("Solution Folders:");
 			foreach (var nest in NestedProjects) {
 				var folder = ProjectGuidToName (nest.Key);
-				Console.WriteLine ("\t" + folder);
+				writer.WriteLine ("\t" + folder);
 				foreach (var n in nest) {
 					var item = ProjectGuidToName (n.Item);
-					Console.WriteLine ("\t\t" + item);
+					writer.WriteLine ("\t\t" + item);
 				}
 			}
 
-			Console.WriteLine ();
-			Console.WriteLine ("ProjectConfigurationPlatforms");
+			writer.WriteLine ();
+			writer.WriteLine ("ProjectConfigurationPlatforms");
 			foreach (var cfgGroup in ProjectConfigurationPlatforms) {
 				var deftpl = ProjectConfigurationPlatformTemplate.CreateTemplateFor ("all", solution_configuration_platforms);
 				var matches = deftpl.Matches (cfgGroup);
 				var pattern = deftpl.Matches (cfgGroup) ? "all" : null;
-				Console.WriteLine ("\t" + GetProjectName (cfgGroup.First ()) + " : " + pattern);
+				writer.WriteLine ("\t" + GetProjectName (cfgGroup.First ()) + " : " + pattern);
 				if (pattern != null)
 					continue;
 				foreach (var cfg in cfgGroup)
-					Console.WriteLine ($"\t\tCFG#{SolutionConfigurationIndexOf (cfg)} / {cfg.Property} / {ProjectConfigurationPlatform.GetValueIfAvailable (cfg.ConfigurationValue)}");
+					writer.WriteLine ($"\t\tCFG#{SolutionConfigurationIndexOf (cfg)} / {cfg.Property} / {ProjectConfigurationPlatform.GetValueIfAvailable (cfg.ConfigurationValue)}");
 			}
 
-			Console.WriteLine ();
+			writer.WriteLine ();
 
 			foreach (var sec in other_global_sections) {
-				Console.WriteLine ($"OTHER SECTION: {sec.Name} ({sec.Type})");
-				Console.WriteLine (sec.Value);
+				writer.WriteLine ($"OTHER SECTION: {sec.Name} ({sec.Type})");
+				writer.WriteLine (sec.Value);
 			}
 		}
 
