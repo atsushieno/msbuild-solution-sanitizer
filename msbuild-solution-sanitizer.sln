@@ -1,0 +1,17 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildSolutionSanitizer", "MSBuildSolutionSanitizer\MSBuildSolutionSanitizer.csproj", "{DA9CF8FC-EE42-4E2F-867E-56F6583B441C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DA9CF8FC-EE42-4E2F-867E-56F6583B441C}.Debug|x86.ActiveCfg = Debug|x86
+		{DA9CF8FC-EE42-4E2F-867E-56F6583B441C}.Debug|x86.Build.0 = Debug|x86
+		{DA9CF8FC-EE42-4E2F-867E-56F6583B441C}.Release|x86.ActiveCfg = Release|x86
+		{DA9CF8FC-EE42-4E2F-867E-56F6583B441C}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+EndGlobal
