@@ -130,12 +130,13 @@ output			Sanitized solution (.sln) or definition (.xml) to write
 					continue;
 				}
 				var project = ProjectRootElement.Open (projectFileFullPath);
-				Func<string, string> getProp = name => project.PropertyGroups.SelectMany (g => g.Properties).FirstOrDefault (p => p.Name.Equals (name))?.Value;
+				Func<string, string> chop = s => s?.Substring (1, s.Length - 2);
+				Func<string, string> getGuidProp = name => chop (project.PropertyGroups.SelectMany (g => g.Properties).FirstOrDefault (p => p.Name.Equals (name))?.Value);
 				projects.Add (new ProjectInSolution {
 					Path = projectFile,
 					Name = projectElement.Attribute ("name")?.Value ?? Path.GetFileNameWithoutExtension (projectFileFullPath),
-					ProjectGuid = getProp ("ProjectGuid") ?? "{" + Guid.NewGuid () + "}",
-					ProjectTypeGuids = getProp ("ProjectTypeGuids"),
+					ProjectGuid = getGuidProp ("ProjectGuid") ?? Guid.NewGuid ().ToString (),
+					ProjectTypeGuids = getGuidProp ("ProjectTypeGuids"),
 				});
 			}
 
@@ -154,7 +155,7 @@ output			Sanitized solution (.sln) or definition (.xml) to write
 						Name = folderName,
 						Path = folderName,
 						ProjectTypeGuids = ProjectTypeGuids.SolutionFolder,
-						ProjectGuid = "{" + Guid.NewGuid () + "}" });
+						ProjectGuid = Guid.NewGuid ().ToString () });
 
 				foreach (var item in folder.Elements ("project")) {
 					var itemName = item.Attribute ("name").Value;
